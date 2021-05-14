@@ -4,22 +4,22 @@ import re
 from utils import *
 
 class transliterate():
-    def __init__(self, mode):
+    def __init__(self, lp):
         self.path = (os.path.dirname(__file__) or ".") + "/data/"
         self.dict = dict()
         self.lm = dict()
-        self.mode = mode
+        self.lp = lp
         self.window_size = 2
 
         tr = dict()
-        if mode == "cntw":
+        if lp == "cntw":
             dicts = ("st.mono", "st.multi", "cntw.sem", "cntw.phon")
-        if mode == "twcn":
+        if lp == "twcn":
             dicts = ("ts.mono", "ts.multi")
-        if mode[:4] == "zhpy":
+        if lp[:4] == "zhpy":
             dicts = ("zhpy.mono", "zhpy.multi", "zypy")
-            if mode in ("zhpyko", "zhpyzy"):
-                fo = open(self.path + mode[2:] + ".tsv")
+            if lp in ("zhpyko", "zhpyzy"):
+                fo = open(self.path + lp[2:] + ".tsv")
                 for line in fo:
                     a, b = line.strip().split("\t")
                     tr[a] = b
@@ -27,7 +27,7 @@ class transliterate():
         for x in dicts:
             self.load_dict(x, tr)
 
-        if mode == "cntw":
+        if lp == "cntw":
             self.load_lm("st.prob")
 
         self.maxlen = max(map(len, self.dict))
@@ -57,7 +57,7 @@ class transliterate():
         out = ""
         for i, w in enumerate(seq):
             sp = " " * pos[i]
-            if i > 0 and self.mode[:4] == "zhpy":
+            if i > 0 and self.lp[:4] == "zhpy":
                 if type(seq[i]) == type(seq[i - 1]) == list:
                     sp = " " * spacing
                 elif list in (type(seq[i]), type(seq[i - 1])):
@@ -79,10 +79,10 @@ class transliterate():
                 i += 1
                 continue
             y = self.dict[x]
-            y = [y] if len(y) > 1 or self.mode[:4] == "zhpy" else y[0]
+            y = [y] if len(y) > 1 or self.lp[:4] == "zhpy" else y[0]
             pos[i:i + len(x)] = [pos[i], *[False for _ in range(len(y) - 1)]]
             seq[i:i + len(x)] = y
-            i += 1 if self.mode[:4] == "zhpy" else len(y)
+            i += 1 if self.lp[:4] == "zhpy" else len(y)
         return pos, seq
 
     def model2(self, seq): # statistical
