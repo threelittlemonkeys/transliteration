@@ -15,7 +15,7 @@ class transliterate():
         if lp == "cntw":
             dicts = ("st.mono", "st.multi", "cntw.sem", "cntw.phon")
         if lp == "twcn":
-            dicts = ("ts.mono", "ts.multi")
+            dicts = ("ts.mono", "ts.multi", "twcn.sem", "twcn.phon")
         if lp[:4] == "zhpy":
             dicts = ("zhpy.mono", "zhpy.multi", "zypy")
             if lp in ("zhpyko", "zhpyzy"):
@@ -71,8 +71,8 @@ class transliterate():
     def model1(self, pos, seq): # rule based
         i = 0
         while i < len(seq):
-            for j in range(min(len(seq), i + self.maxlen), i, -1):
-                x = "".join(seq[i:j])
+            for j in range(min(self.maxlen, len(seq) - i), 0, -1):
+                x = "".join(seq[i:i + j])
                 if x in self.dict:
                     break
             else:
@@ -122,6 +122,6 @@ if __name__ == "__main__":
     fo = open(sys.argv[2])
     for line in fo:
         line = line.strip()
-        output = tr.convert(line, capitalize = True, spacing = True)
+        output = tr.convert(line, capitalize = False, spacing = True)
         print(output)
     fo.close()
