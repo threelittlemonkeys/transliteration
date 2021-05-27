@@ -10,6 +10,9 @@ class transliterate():
         self.lm = dict()
         self.lp = lp
         self.window_size = 2
+        self.ignore_space = True
+        self.pinyin_spacing = True
+        self.capitalize_pinyin = True
 
         tr = dict()
         if lp == "cntw":
@@ -48,8 +51,8 @@ class transliterate():
             self.lm[w] = (float(p), int(f))
         fo.close()
 
-    def convert(self, line, capitalize = True, spacing = True, ignore_space = True):
-        sp = " " * ignore_space
+    def convert(self, line):
+        sp = " " * self.ignore_space
         pos = [i > 0 and line[i - 1] == sp for i, w in enumerate(line) if w != sp]
         seq = list(line.replace(sp, ""))
         pos, seq = self.model1(pos, seq)
@@ -57,15 +60,17 @@ class transliterate():
         out = ""
         for i, w in enumerate(seq):
             sp = " " * pos[i]
-            if i > 0 and self.lp[:4] == "zhpy":
-                if type(seq[i]) == type(seq[i - 1]) == list:
-                    sp = " " * spacing
-                elif list in (type(seq[i]), type(seq[i - 1])):
+            if self.lp[:4] == "zhpy" and type(w) == list:
+                w = w[0].split(" ")
+                if i > 0 and self.pinyin_spacing:
                     sp = " "
-            if type(w) == list:
-                w = w[0]
-            w = (w.capitalize() if capitalize else w for w in w.split(" "))
-            out += sp + (" " * spacing).join(w)
+                if self.capitalize_pinyin:
+                    if i == 0 or sp == " ":
+                        w[0] = w[0].capitalize()
+                    if self.pinyin_spacing:
+                        w[1:] = [x.capitalize() for x in w[1:]]
+                w = (" " * self.pinyin_spacing).join(w)
+            out += sp + (w if type(w) == str else w[0])
         return out
 
     def model1(self, pos, seq): # rule based
@@ -119,9 +124,10 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         sys.exit("Usage: %s cntw|twcn|zhpy|zhpyko text" % sys.argv[0])
     tr = transliterate(sys.argv[1])
+    # tr.pinyin_spacing = False
     fo = open(sys.argv[2])
     for line in fo:
         line = line.strip()
-        output = tr.convert(line, capitalize = False, spacing = True)
+        output = tr.convert(line)
         print(output)
     fo.close()
