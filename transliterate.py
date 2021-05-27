@@ -13,9 +13,9 @@ class transliterate():
 
         tr = dict()
         if lp == "cntw":
-            dicts = ("st.mono", "st.multi", "cntw.sem", "cntw.phon")
+            dicts = ("st.mono", "st.multi", "cntw.sem", "cntw.phon", "cntw.typo")
         if lp == "twcn":
-            dicts = ("ts.mono", "ts.multi", "twcn.sem", "twcn.phon")
+            dicts = ("ts.mono", "ts.multi", "twcn.sem", "twcn.phon", "twcn.typo")
         if lp[:4] == "zhpy":
             dicts = ("zhpy.mono", "zhpy.multi", "zypy")
             if lp in ("zhpyko", "zhpyzy"):
