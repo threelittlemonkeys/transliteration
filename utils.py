@@ -1,4 +1,4 @@
-def detect_bpmf(x):
+def detect_zhuyin(x):
     return any("\u3105" <= c <= "\u312F" for c in x)
 
 def remove_zh_tone_marks(x):
