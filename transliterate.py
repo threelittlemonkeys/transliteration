@@ -5,7 +5,7 @@ from utils import *
 
 class transliterate():
     def __init__(self, lp):
-        self.path = (os.path.dirname(__file__) or ".") + "/data/"
+        self.path = os.path.dirname(__file__) + "/data/"
         self.dict = dict()
         self.lm = dict()
         self.lp = lp
@@ -121,13 +121,11 @@ class transliterate():
         return seq
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        sys.exit("Usage: %s cntw|twcn|zhpy|zhpyko text" % sys.argv[0])
+    if len(sys.argv) != 2:
+        sys.exit("Usage: %s cntw|twcn|zhpy|zhpyko < text" % sys.argv[0])
     tr = transliterate(sys.argv[1])
     # tr.pinyin_spacing = False
-    fo = open(sys.argv[2])
-    for line in fo:
+    for line in sys.stdin:
         line = line.strip()
         output = tr.convert(line)
         print(output)
-    fo.close()
