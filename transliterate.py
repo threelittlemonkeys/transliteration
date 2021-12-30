@@ -5,7 +5,7 @@ from utils import *
 
 class transliterate():
     def __init__(self, lp):
-        self.path = os.path.dirname(__file__) + "/data/"
+        self.path = (os.path.dirname(__file__) or ".") + "/data/"
         self.dict = dict()
         self.lm = dict()
         self.lp = lp
