@@ -27,9 +27,9 @@ class transliterate():
                     a, b = line.strip().split("\t")
                     tr[a] = b
                 fo.close()
+
         for x in dicts:
             self.load_dict(x, tr)
-
         if lp == "cntw":
             self.load_lm("st.prob")
 
@@ -73,7 +73,7 @@ class transliterate():
             out += sp + (w if type(w) == str else w[0])
         return out
 
-    def model1(self, pos, seq): # rule based
+    def model1(self, pos, seq): # dictionary based
         i = 0
         while i < len(seq):
             for j in range(min(self.maxlen, len(seq) - i), 0, -1):
