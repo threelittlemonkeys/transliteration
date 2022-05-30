@@ -4,6 +4,7 @@ import re
 from utils import *
 
 class transliterate():
+
     def __init__(self, lp):
         self.path = (os.path.dirname(__file__) or ".") + "/data/"
         self.dict = dict()
@@ -97,27 +98,22 @@ class transliterate():
             p1 = max(0, i - self.window_size)
             p2 = min(len(seq), i + self.window_size + 1)
             p = i - p1
-            ys, _ys = [], [""]
+
+            cands = [""]
             for j in range(p1, p2):
-                _ys = [y + w for w in seq[j] for y in _ys]
-            for y in _ys:
-                for j in range(self.window_size, 0, -1):
-                    if p >= j:
-                        w = y[p - j:p + 1]
+                cands = [y + w for w in seq[j] for y in cands]
+
+            ys = []
+            for y in cands:
+                for j in range(p + 1):
+                    for k in range(p, len(y)):
+                        w = y[j:k]
                         if w in self.lm:
                             ys.append((y[p], w, *self.lm[w]))
-                    if p + j <= len(y):
-                        w = y[p:p + j]
-                        if w in self.lm:
-                            ys.append((y[p], w, *self.lm[w]))
-                    if p >= j and p + j <= len(y):
-                        w = y[p - j:p + j]
-                        if w in self.lm:
-                            ys.append((y[p], w, *self.lm[w]))
-                    if len(ys):
-                        break
+
             ys.sort(key = lambda x: (-len(x[1]), -x[2]))
             seq[i] = [(ys[0] if ys else seq[i])[0]]
+
         return seq
 
 if __name__ == "__main__":
@@ -127,5 +123,5 @@ if __name__ == "__main__":
     # tr.pinyin_spacing = False
     for line in sys.stdin:
         line = line.strip()
-        output = tr.convert(line)
-        print(output)
+        out = tr.convert(line)
+        print(out)
