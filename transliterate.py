@@ -6,22 +6,25 @@ from utils import *
 class transliterate():
 
     def __init__(self, lp):
+
         self.path = (os.path.dirname(__file__) or ".") + "/data/"
-        self.dict = dict()
-        self.lm = dict()
+        self.dict = {}
+        self.lm = {}
         self.lp = lp
+        self.maxlen = 0
         self.window_size = 2
         self.ignore_space = True
         self.pinyin_spacing = True
-        self.capitalize_pinyin = True
+        self.capitalize_pinyin = False
 
-        tr = dict()
+        tr = {}
+        dicts = []
         if lp == "cntw":
-            dicts = ("st.mono", "st.multi", "cntw.sem", "cntw.phon", "cntw.typo")
+            dicts += ["st.mono", "st.multi", "cntw.sem", "cntw.phon", "cntw.typo"]
         if lp == "twcn":
-            dicts = ("ts.mono", "ts.multi", "twcn.sem", "twcn.phon", "twcn.typo")
+            dicts += ["ts.mono", "ts.multi", "twcn.sem", "twcn.phon", "twcn.typo"]
         if lp[:4] == "zhpy":
-            dicts = ("zhpy.mono", "zhpy.multi", "zypy")
+            dicts += ["zhpy.mono", "zhpy.multi", "zypy"]
             if lp in ("zhpyko", "zhpyzy"):
                 fo = open(self.path + lp[2:] + ".tsv")
                 for line in fo:
@@ -31,16 +34,18 @@ class transliterate():
 
         for x in dicts:
             self.load_dict(x, tr)
+
+        if self.dict:
+            self.maxlen = max(map(len, self.dict))
+
         if lp == "cntw":
             self.load_lm("st.prob")
-
-        self.maxlen = max(map(len, self.dict))
 
     def load_dict(self, filename, tr):
         fo = open(self.path + filename + ".tsv")
         for line in fo:
             a, *b = line.strip().split("\t")
-            b = list(map(remove_zh_tone_marks, b))
+            b = map(remove_diacritics, b)
             b = [" ".join(tr[w] if w in tr else w for w in w.split(" ")) for w in b]
             self.dict[a] = b
         fo.close()
@@ -53,6 +58,10 @@ class transliterate():
         fo.close()
 
     def convert(self, line):
+
+        if self.lp == "koen":
+            return romanize_ko(line)
+
         sp = " " * self.ignore_space
         pos = [i > 0 and line[i - 1] == sp for i, w in enumerate(line) if w != sp]
         seq = list(line.replace(sp, ""))
@@ -117,10 +126,13 @@ class transliterate():
         return seq
 
 if __name__ == "__main__":
+
     if len(sys.argv) != 2:
-        sys.exit("Usage: %s cntw|twcn|zhpy|zhpyko < text" % sys.argv[0])
+        sys.exit("Usage: %s koen|cntw|twcn|zhpy|zhpyko < text" % sys.argv[0])
+
     tr = transliterate(sys.argv[1])
     # tr.pinyin_spacing = False
+
     for line in sys.stdin:
         line = line.strip()
         out = tr.convert(line)
