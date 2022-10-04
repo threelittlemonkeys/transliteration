@@ -17,8 +17,8 @@ class transliterate():
         self.pinyin_spacing = True
         self.capitalize_pinyin = False
 
-        tr = {}
         dicts = []
+        tr = {}
         if lp == "cntw":
             dicts += ["st.mono", "st.multi", "cntw.sem", "cntw.phon", "cntw.typo"]
         if lp == "twcn":
@@ -31,6 +31,8 @@ class transliterate():
                     a, b = line.strip().split("\t")
                     tr[a] = b
                 fo.close()
+        if lp == "zhko":
+            dicts += ["zhko", "zypy"]
 
         for x in dicts:
             self.load_dict(x, tr)
@@ -45,8 +47,8 @@ class transliterate():
         fo = open(self.path + filename + ".tsv")
         for line in fo:
             a, *b = line.strip().split("\t")
-            b = map(remove_diacritics, b)
-            b = [" ".join(tr[w] if w in tr else w for w in w.split(" ")) for w in b]
+            b = list(map(remove_diacritics, b))
+            b = [" ".join(tr.get(w, w) for w in w.split(" ")) for w in b]
             self.dict[a] = b
         fo.close()
 
@@ -128,7 +130,7 @@ class transliterate():
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
-        sys.exit("Usage: %s koen|cntw|twcn|zhpy|zhpyko < text" % sys.argv[0])
+        sys.exit("Usage: %s koen|cntw|twcn|zhko|zhpy|zhpyko < text" % sys.argv[0])
 
     tr = transliterate(sys.argv[1])
     # tr.pinyin_spacing = False
