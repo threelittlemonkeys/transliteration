@@ -31,8 +31,8 @@ class transliterate():
                     a, b = line.strip().split("\t")
                     tr[a] = b
                 fo.close()
-        if lp == "zhko":
-            dicts += ["zhko", "zypy"]
+        if lp == "hanko":
+            dicts += ["hanko", "zypy"]
 
         for x in dicts:
             self.load_dict(x, tr)
@@ -130,7 +130,7 @@ class transliterate():
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
-        sys.exit("Usage: %s koen|cntw|twcn|zhko|zhpy|zhpyko < text" % sys.argv[0])
+        sys.exit("Usage: %s cntw|twcn|hanko|zhpy|zhpyko|koen < text" % sys.argv[0])
 
     tr = transliterate(sys.argv[1])
     # tr.pinyin_spacing = False
