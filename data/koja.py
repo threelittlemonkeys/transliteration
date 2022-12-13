@@ -2,7 +2,7 @@ ic = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ" # initial conso
 mv = "ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ" # medial vowels
 fc = " ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ" # final consonants
 
-css = ["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅㅆ", "ㅇ", "ㅈ", "ㅊㅉ", "ㄲㅋ", "ㄸㅌ", "ㅃㅍ", "ㅎ"]
+css = "ㄱ ㄴ ㄷ ㄹ ㅁ ㅂ ㅅㅆ ㅇ ㅈ ㅊㅉ ㄲㅋ ㄸㅌ ㅃㅍ ㅎ".split(" ")
 
 cv_map = dict()
 
@@ -32,8 +32,8 @@ fc_map["ㄻㅁ"] = "ム"
 fc_map["ㄴㄵㄶㅇ"] = "ン"
 fc_map["ㅂㅄㄿㅍ"] = "プ"
 
-for i in range(19):
-    for j in range (21):
+for i in range(len(ic)):
+    for j in range (len(mv)):
         cv = ""
         for vs in cv_map:
             if mv[j] in vs:
@@ -41,7 +41,7 @@ for i in range(19):
                     if ic[i] in cs:
                         cv = cv_map[vs][cs]
                         break
-        for k in range(28):
+        for k in range(len(fc)):
             s = chr(0xAC00 + i * 21 * 28 + j * 28 + k)
             if not k:
                 print(s, cv, sep = "\t")
