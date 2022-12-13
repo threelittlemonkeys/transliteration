@@ -13,4 +13,4 @@ Language pairs:
 - Japanese to Korean (jako)
 - Korean to English (koen)
 - Korean to Japanese (koja)
-- Korean to Chinese (kozh)
+- Korean to Chinese (kocn, kotw)
