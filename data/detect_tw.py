@@ -1,7 +1,7 @@
 import sys
 
 cn = set()
-with open("st.mono.tsv") as fo:
+with open("cntw.mono.tsv") as fo:
     for line in fo:
         s, *t = line.strip().split("\t")
         if s in t:
