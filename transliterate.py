@@ -20,19 +20,17 @@ class transliterate():
         dicts = []
         tr = {}
         if lp in ("cntw", "twcn"):
-            dicts += [lp + ext for ext in [".mono", ".multi", ".sem", ".phon", ".typo"]]
+            dicts = [lp + ext for ext in [".mono", ".multi", ".sem", ".phon", ".typo"]]
         if lp[:4] == "zhpy":
-            dicts += ["zhpy.mono", "zhpy.multi", "zypy"]
+            dicts = ["zhpy.mono", "zhpy.multi", "zypy"]
             if lp in ("zhpyko", "zhpyzy"):
                 fo = open(self.path + lp[2:] + ".tsv")
                 for line in fo:
                     a, b = line.strip().split("\t")
                     tr[a] = b
                 fo.close()
-        if lp == "hanko":
-            dicts += ["hanko", "zypy"]
-        if lp in ("koja", "kocn", "kotw"):
-            dicts += [lp]
+        if lp in ("hanja", "hanko", "koja", "kocn", "kotw"):
+            dicts = [lp]
 
         for x in dicts:
             self.load_dict(x, tr)
@@ -130,7 +128,7 @@ class transliterate():
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
-        sys.exit("Usage: %s cntw|twcn|zhpy|zhpyko|hanko|koen|koja|kocn|kotw < text" % sys.argv[0])
+        sys.exit("Usage: %s cntw|twcn|zhpy|zhpyko|hanja|hanko|koen|koja|kocn|kotw < text" % sys.argv[0])
 
     tr = transliterate(sys.argv[1])
     # tr.pinyin_spacing = False

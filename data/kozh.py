@@ -75,9 +75,9 @@ for i in range(len(ic)):
                     if ic[i] in cs:
                         cv = cv_map[vs][cs]
         for k in range(len(fc)):
-            s = chr(0xAC00 + i * 21 * 28 + j * 28 + k)
+            ko = chr(0xAC00 + i * 21 * 28 + j * 28 + k)
             if not k:
-                print(s, cv, sep = "\t")
+                print(ko, cv, sep = "\t")
                 continue
             cvc = ""
             for vcs in cvc_map:
@@ -86,8 +86,8 @@ for i in range(len(ic)):
                         if ic[i] in cs:
                             cvc = cvc_map[vcs][cs]
             if cvc:
-                print(s, cvc, sep = "\t")
+                print(ko, cvc, sep = "\t")
                 continue
             for cs in fc_map:
                 if fc[k] in cs:
-                    print(s, cv + fc_map[cs], sep = "\t")
+                    print(ko, cv + fc_map[cs], sep = "\t")

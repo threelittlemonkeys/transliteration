@@ -34,7 +34,6 @@ fc_map["ㅂㅄㄿㅍ"] = "プ"
 
 for i in range(len(ic)):
     for j in range (len(mv)):
-        cv = ""
         for vs in cv_map:
             if mv[j] in vs:
                 for cs in cv_map[vs]:
@@ -42,11 +41,11 @@ for i in range(len(ic)):
                         cv = cv_map[vs][cs]
                         break
         for k in range(len(fc)):
-            s = chr(0xAC00 + i * 21 * 28 + j * 28 + k)
+            ko = chr(0xAC00 + i * 21 * 28 + j * 28 + k)
             if not k:
-                print(s, cv, sep = "\t")
+                print(ko, cv, sep = "\t")
                 continue
             for cs in fc_map:
                 if fc[k] in cs:
-                    print(s, cv + fc_map[cs], sep = "\t")
+                    print(ko, cv + fc_map[cs], sep = "\t")
                     break
