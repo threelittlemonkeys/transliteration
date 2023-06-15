@@ -39,7 +39,7 @@ class transliterate():
             self.maxlen = max(map(len, self.dict))
 
         if lp == "cntw":
-            self.load_lm("st.prob")
+            self.load_lm("cntw.prob")
 
     def load_dict(self, filename, tr):
         fo = open(self.path + filename + ".tsv")
