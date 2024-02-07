@@ -20,6 +20,9 @@ cv_map = {
     "ㅢㅣ": "ギ ニ ディ リ ミ ビ シ イ ジ チ キ ティ ピ ヒ"
 }
 
+for vs, jas in cv_map.items():
+    cv_map[vs] = {cs: ja for cs, ja in zip(css, jas.split(" "))}
+
 fc_map = {
     "ㄱㄲㄳㄺㅋ": "ク",
     "ㄷㅅㅆㅈㅊㅌㅎ": "ッ",
@@ -29,19 +32,15 @@ fc_map = {
     "ㅂㅄㄿㅍ": "プ"
 }
 
-for vs, jas in cv_map.items():
-    cv_map[vs] = {cs: ja for cs, ja in zip(css, jas.split(" "))}
-
 for i in range(len(ic)):
     for j in range(len(mv)):
 
+        cv = ""
         for vs in cv_map:
             if mv[j] in vs:
                 for cs in cv_map[vs]:
                     if ic[i] in cs:
                         cv = cv_map[vs][cs]
-                        break
-                break
 
         for k in range(len(fc)):
             ko = chr(0xAC00 + i * 21 * 28 + j * 28 + k)
