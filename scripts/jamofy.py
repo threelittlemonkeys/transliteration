@@ -1,6 +1,5 @@
 import sys
 import re
-from syllabify import *
 
 _IDX_TO_HIC = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ" # Hangeul initial consonants
 _IDX_TO_HMV = "ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ" # Hangeul medial vowels

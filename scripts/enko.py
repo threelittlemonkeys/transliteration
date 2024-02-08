@@ -73,7 +73,7 @@ def syllabify_en(en, _ipa):
     C3 = "s[ckp][lr]|s[ft]r|skw"
 
     # vowels
-    V = "[aeou]y|[aeiou]+|y(?![aeou])"
+    V = "[aeo][ouw]|[aeou][iy]|[eo]a|[eiou]e|(au|e?i)gh|[aeiou]|y(?![aeou])"
 
     # phoneme segmentation
     _en = normalize(en)
