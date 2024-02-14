@@ -73,11 +73,13 @@ def syllabify_en(en, _ipa):
     C3 = "s[ckp][lr]|s[ft]r|skw"
 
     # vowels
-    V = "[aeo][ouw]|[aeou][iy]|[eo]a|[eiou]e|(au|e?i)gh|[aeiou]|y(?![aeou])"
+    V1 = "[aeiou]|y(?![aeou])"
+    V2 = "[aeo][ouw]|[aeou][iy]|[eo]a|[eiou]e"
+    V3 = "(au|e?i)gh|(?<=[st])io(?=n)"
 
     # phoneme segmentation
     _en = normalize(en)
-    _en = re.sub(f" ?({V})", r" _\1_", _en)
+    _en = re.sub(f" ?({V3}|{V2}|{V1})", r" _\1_", _en)
 
     # onset maximalization
     _en = re.sub(f" ?({C3}|{C2}|{C1}) _", r" \1_", _en)
@@ -97,13 +99,35 @@ def syllabify_en(en, _ipa):
 
     return _en
 
+def preproc_enko(_en, _ipa):
+
+    if len(_ipa) == 1:
+        return en
+
+    if len(_en) != len(_ipa):
+        return _en
+
+    for i, (a, b) in enumerate(zip(_en, _ipa)):
+
+        if not i:
+            continue
+
+        if len(a) < 2 or len(b) < 2:
+            continue
+
+        if a[1] == "i" and b[1] == "ə" and b[2][:1] != "r":
+            b[1] = "i"
+
+    return _en
+
 def syllabify_enko(_en, _ipa):
 
     # consonants
     C1 = "dʒ|tʃ|[bdfghjklmnprstvwzðŋʃʒθ]"
     C2 = "[bdfghklmnpstvzʒθ]j|dʒj|[gk]w"
-    C3 = "dz|ts|l[mn]"
+    C3 = "dz|ts|l[mn]|rl"
 
+    _en = preproc_enko(_en, _ipa)
     _ko = []
 
     for i, x in enumerate(_ipa):
@@ -167,8 +191,12 @@ def syllabify_enko(_en, _ipa):
                     y.append(["", "ə"])
                 p = ""
 
+            # syllable-final /rl/
+            elif p == "rl":
+                p = "l"
+
             # syllable-initial consonants
-            elif p[-1] not in ("b", "k", "l", "m", "n", "p", "ŋ"):
+            elif p not in ("b", "k", "l", "m", "n", "p", "ŋ"):
                 y.append([])
 
             y[-1].append(p)
@@ -236,15 +264,13 @@ if __name__ == "__main__":
 
         _ipa = syllabify_ipa(ipa)
         _en = syllabify_en(en, _ipa)
-        _ko = syllabify_enko(_en, _ipa)
+        ko = syllabify_enko(_en, _ipa)
 
-        if _ko == None:
-            print(en, ipa, sep = "\t")
+        if ko == None:
+            print(en, ipa, "", "", "", sep = "\t")
             continue
-
-        print(_ipa)
 
         _en = ".".join("".join(x) for x in _en)
         _ipa = ".".join("".join(x) for x in _ipa)
 
-        print(en, ipa, _en, _ipa, _ko, sep = "\t")
+        print(en, ipa, _en, _ipa, ko, sep = "\t")
