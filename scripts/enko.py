@@ -75,7 +75,7 @@ def syllabify_en(en, _ipa):
     # vowels
     V1 = "[aeiou]|y(?![aeou])"
     V2 = "[aeo]a|[eiou]e|[aeo][ouw]|[aeou][iy]"
-    V3 = "(au|e?i)gh|(?<=[st])io(?=n)"
+    V3 = "(?<=[st])io(?=n)"
 
     # phoneme segmentation
     _en = normalize(en)
@@ -206,8 +206,10 @@ def syllabify_enko_phase2(_en, _ipa):
                 if p in ("l", "m", "n"):
                     if len(y[-1]) == 1:
                         y[-1].append("")
-                    elif y[-1][-1] == "":
-                        y[-1].pop()
+                    else:
+                        k = y[-1].pop()
+                        if k:
+                            y.append([k, ""])
 
                 else:
                     y.append([])
@@ -303,7 +305,7 @@ if __name__ == "__main__":
         # print(len(_en), _en)
 
         if ko == None:
-            print(en, ipa, "", "", "", sep = "\t")
+            # print(en, ipa, "", "", "", sep = "\t")
             continue
 
         _en = ".".join("".join(x) for x in _en)
