@@ -29,7 +29,7 @@ class transliterate():
                     a, b = line.strip().split("\t")
                     tr[a] = b
                 fo.close()
-        if lp in ("hanja", "hanko", "koja", "kocn", "kotw"):
+        if lp in ("hanja", "hanko", "kocn", "kotw"):
             dicts = [lp]
 
         for x in dicts:
@@ -128,7 +128,7 @@ class transliterate():
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
-        sys.exit("Usage: %s cntw|twcn|zhpy|zhpyko|hanja|hanko|koen|koja|kocn|kotw < text" % sys.argv[0])
+        sys.exit("Usage: %s cntw|twcn|zhpy|zhpyko|hanja|hanko|koen|kocn|kotw < text" % sys.argv[0])
 
     tr = transliterate(sys.argv[1])
     # tr.pinyin_spacing = False
