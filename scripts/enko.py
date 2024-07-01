@@ -2,13 +2,16 @@ import sys
 import re
 import jamofy
 
+# TODO
+# hotdog
+
 # sonority sequencing principle (SSP)
 # sonority hierarchy
 # vowels > glides > liquids > nasals > fricatives > affricates > plosives
 
 def normalize(x):
 
-    x = re.sub("\s+", " ", x).strip()
+    x = re.sub(r"\s+", " ", x).strip()
 
     x = re.sub("[aàáɑɒάαὰ]", "a", x)
     x = re.sub("[eèéɛέὲ]", "e", x)
@@ -39,26 +42,32 @@ def concat_coda(m):
 def syllabify_ipa(x):
 
     # onsets
+
     C1 = "dʒ|tʃ|[bdfghjklmnprstvwzðŋʃʒθ]"
     C2 = "[bfgkps]l|[bdfgkptθ]r|[dgkst]w|[bdfghklmnpstvzʒθ]j|dʒj|s[kmnpt]"
     C3 = "s[kmpt]j|s[kp][lr]|s[ft]r|skw"
 
     # vowels
+
     V1 = "[aeiouæə]" # monophthongs
     V2 = "[aoə][iu]|ei|[eiu]ə" # diphthongs
     V3 = "[aeo]iə|[aoə]uə" # triphthongs
 
     # phoneme segmentation
+
     _ipa = normalize(x)
     _ipa = re.sub(f" ?({V2}|{V1})", r" _\1_", _ipa)
 
     # onset maximalization
+
     _ipa = re.sub(f" ?({C3}|{C2}|{C1}) _", r" \1_", _ipa)
 
     # coda concatenation
+
     _ipa = re.sub("(_[^ ˈˌ.]+)(( [^ _]+)+)(?=[ ˈˌ.])", concat_coda, _ipa)
 
     # post-processing
+
     _ipa = re.sub(" ?[ˈˌ] ?", " ", _ipa)
     _ipa = _ipa.strip()
     _ipa = [x.split("_") for x in _ipa.split(" ")]
@@ -68,16 +77,19 @@ def syllabify_ipa(x):
 def syllabify_en(en, _ipa):
 
     # onsets
+
     C1 = "[bcdgkprstw]h|([bdfgjklmnprstxvz])\\2|[bcdfghjklmnpqrstvwxyz]"
     C2 = "[bcfgkps]l|[bcdfgkpt]r|[cdgkpst]w|s[cfkmnpqt]"
     C3 = "s[ckp][lr]|s[ft]r|skw"
 
     # vowels
+
     V1 = "[aeiou]|y(?![aeou])"
     V2 = "[aeo]a|[eiou]e|[aeo][ouw]|[aeou][iy]"
     V3 = "(?<=[st])io(?=n)"
 
     # phoneme segmentation
+
     _en = normalize(en)
     _en = re.sub(f" ?({V3}|{V2}|{V1})", r" _\1_", _en)
 
@@ -86,13 +98,16 @@ def syllabify_en(en, _ipa):
     _en = re.sub("^([^ ]+) ", r"\1", _en)
 
     # coda concatenation
+
     _en = re.sub("(_[^ ˈˌ]+)(( [^ _]+)+)(?=[ ˈˌ])", concat_coda, _en)
 
     # post-processing
+
     _en = _en.strip()
     _en = [x.split("_") for x in _en.split(" ")]
 
     # silent e
+
     if len(_en) > len(_ipa) and _en[-1][1] == "e" and _en[-1][2] in "ds":
         s = "".join(_en[-1])
         _en.pop()
@@ -100,24 +115,27 @@ def syllabify_en(en, _ipa):
 
     return _en
 
-def syllabify_enko(_en, _ipa):
+def syllabify_enko(en, _en, _ipa):
 
     _en = [[x for x in xs] for xs in _en]
     _ipa = [[x for x in xs] for xs in _ipa]
 
-    _en = syllabify_enko_phase1(_en, _ipa)
-    _ko = syllabify_enko_phase2(_en, _ipa)
-    ko = syllabify_enko_phase3(_en, _ko)
+    syllabify_enko_phase1(en, _en, _ipa)
+    _ko = syllabify_enko_phase2(_ipa)
+    ko = syllabify_enko_phase3(_ko)
 
     return ko
 
-def syllabify_enko_phase1(_en, _ipa):
+def syllabify_enko_phase1(en, _en, _ipa):
 
     if len(_ipa) == 1:
-        return _en
+        return
 
+    '''
     if len(_en) != len(_ipa):
-        return _en
+        print(en, _en, _ipa)
+        return
+    '''
 
     for i, (a, b) in enumerate(zip(_en, _ipa)):
 
@@ -137,11 +155,10 @@ def syllabify_enko_phase1(_en, _ipa):
         and len(b[0]) == 1 and b[1] == "ə" and b[2][0] == "l":
             b[1] = [""]
 
-    return _en
-
-def syllabify_enko_phase2(_en, _ipa):
+def syllabify_enko_phase2(_ipa):
 
     # consonants
+
     C1 = "dʒ|tʃ|[bdfghjklmnprstvwzðŋʃʒθ]"
     C2 = "[bdfghklmnpstvzʒθ]j|dʒj|[gk]w"
     C3 = "dz|ts|l[mn]|rl"
@@ -167,6 +184,7 @@ def syllabify_enko_phase2(_en, _ipa):
         for p in o:
 
             # syllable-initial /l/
+
             if p == "l" and (y or _ko):
                 s = y[-1] if y else _ko[-1][-1]
                 if len(s) != 3:
@@ -175,6 +193,7 @@ def syllabify_enko_phase2(_en, _ipa):
                     s.append("l")
 
             # syllable-initial /m/, /n/
+
             if p in ("m", "n") and _ko:
                 s = _ko[-1]
                 if len(s[-1]) == 3 and s[-1][2] in ("k", "p"):
@@ -185,6 +204,7 @@ def syllabify_enko_phase2(_en, _ipa):
         # nucleus
 
         # non-word-final diphong /ou/
+
         if (c or i < len(_ipa) - 1) and n == "ou":
             n = "o"
 
@@ -200,9 +220,11 @@ def syllabify_enko_phase2(_en, _ipa):
         for p in c:
 
             # coda already occupied
+
             if len(y[-1]) != 2:
 
                 # syllable-final /l/, /m/, /n/
+
                 if p in ("l", "m", "n"):
                     if len(y[-1]) == 1:
                         y[-1].append("")
@@ -210,27 +232,31 @@ def syllabify_enko_phase2(_en, _ipa):
                         k = y[-1].pop()
                         if k:
                             y.append([k, ""])
-
                 else:
                     y.append([])
 
             # syllable-final /lm/, /ln/
+
             elif p in ("lm", "ln"):
                 y[-1].append("l")
                 y.append(["l", "ə"])
                 p = p[1]
 
             # syllable-final /r/
+
             elif p == "r":
                 if y[-1][-1][-1] in ("e", "i"): # /ɛɹ/, /ɪɹ/
                     y.append(["", "ə"]) # /ɛə/, /ɪə/
                 p = ""
 
             # syllable-final /rl/
+
             elif p == "rl":
+
                 p = "l"
 
             # syllable-initial consonants
+
             elif p not in ("b", "k", "l", "m", "n", "p", "ŋ"):
                 y.append([])
 
@@ -240,7 +266,7 @@ def syllabify_enko_phase2(_en, _ipa):
 
     return _ko
 
-def syllabify_enko_phase3(_en, _ko) : # IPA to Hangeul syllables
+def syllabify_enko_phase3(_ko) : # IPA to Hangeul syllables
 
     _ENKO = {
         **{a: b for a, b in zip(
@@ -264,6 +290,7 @@ def syllabify_enko_phase3(_en, _ko) : # IPA to Hangeul syllables
 
             if len(x) == 1:
                 x.append("")
+
             if x[0][-1:] in ("j", "w"):
                 x[0], j = x[0][:-1], x[0][-1]
                 x[1] = j + x[1]
@@ -299,10 +326,7 @@ if __name__ == "__main__":
 
         _ipa = syllabify_ipa(ipa)
         _en = syllabify_en(en, _ipa)
-        ko = syllabify_enko(_en, _ipa)
-
-        # print(len(_ipa), _ipa)
-        # print(len(_en), _en)
+        ko = syllabify_enko(en, _en, _ipa)
 
         if ko == None:
             # print(en, ipa, "", "", "", sep = "\t")
@@ -311,4 +335,4 @@ if __name__ == "__main__":
         _en = ".".join("".join(x) for x in _en)
         _ipa = ".".join("".join(x) for x in _ipa)
 
-        print(en, ipa, _en, _ipa, ko, sep = "\t")
+        # print(en, ipa, _en, _ipa, ko, sep = "\t")
