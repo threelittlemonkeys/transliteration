@@ -2,9 +2,6 @@ import sys
 import re
 import jamofy
 
-# TODO
-# hotdog
-
 # sonority sequencing principle (SSP)
 # sonority hierarchy
 # vowels > glides > liquids > nasals > fricatives > affricates > plosives
@@ -115,27 +112,21 @@ def syllabify_en(en, _ipa):
 
     return _en
 
-def syllabify_enko(en, _en, _ipa):
+def syllabify_enko(en, ipa):
 
-    _en = [[x for x in xs] for xs in _en]
-    _ipa = [[x for x in xs] for xs in _ipa]
+    en = [[x for x in xs] for xs in en]
+    ipa = [[x for x in xs] for xs in ipa]
 
-    syllabify_enko_phase1(en, _en, _ipa)
-    _ko = syllabify_enko_phase2(_ipa)
-    ko = syllabify_enko_phase3(_ko)
+    syllabify_enko_phase1(en, ipa)
+    ko = syllabify_enko_phase2(ipa)
+    ko = syllabify_enko_phase3(ko)
 
     return ko
 
-def syllabify_enko_phase1(en, _en, _ipa):
+def syllabify_enko_phase1(_en, _ipa):
 
     if len(_ipa) == 1:
         return
-
-    '''
-    if len(_en) != len(_ipa):
-        print(en, _en, _ipa)
-        return
-    '''
 
     for i, (a, b) in enumerate(zip(_en, _ipa)):
 
@@ -146,14 +137,19 @@ def syllabify_enko_phase1(en, _en, _ipa):
             continue
 
         if b[2] and b[2][0] == "r":
-            continue
+            pass # continue
 
-        if a[1] == "i" and b[1] == "ə": # reduced vowel i
+        # vowel reduction
+
+        if a[1] == "i" and b[0] != "ʃ" and b[1] == "ə" \
+        and not (len(_en) > i + 1 and "".join(en[i + 1])[:3] == "ble"):
             b[1] = "i"
 
-        elif re.match("[bcdfgkpstz]l", a[0]) and a[1] == "e" \
-        and len(b[0]) == 1 and b[1] == "ə" and b[2][0] == "l":
-            b[1] = [""]
+        # syllabic consonants
+
+        if re.match("[bcdfgkpstz]le", a[0] + a[1]) \
+        and (b[1] + b[2])[:2] == "əl":
+            b[1] = [""] # remove the schwa
 
 def syllabify_enko_phase2(_ipa):
 
@@ -163,7 +159,7 @@ def syllabify_enko_phase2(_ipa):
     C2 = "[bdfghklmnpstvzʒθ]j|dʒj|[gk]w"
     C3 = "dz|ts|l[mn]|rl"
 
-    _ko = []
+    ko = []
 
     for i, x in enumerate(_ipa):
 
@@ -185,8 +181,8 @@ def syllabify_enko_phase2(_ipa):
 
             # syllable-initial /l/
 
-            if p == "l" and (y or _ko):
-                s = y[-1] if y else _ko[-1][-1]
+            if p == "l" and (y or ko):
+                s = y[-1] if y else ko[-1][-1]
                 if len(s) != 3:
                     if len(s) == 1:
                         s.append("")
@@ -194,8 +190,8 @@ def syllabify_enko_phase2(_ipa):
 
             # syllable-initial /m/, /n/
 
-            if p in ("m", "n") and _ko:
-                s = _ko[-1]
+            if p in ("m", "n") and ko:
+                s = ko[-1]
                 if len(s[-1]) == 3 and s[-1][2] in ("k", "p"):
                     s.append([s[-1].pop()])
 
@@ -262,9 +258,9 @@ def syllabify_enko_phase2(_ipa):
 
             y[-1].append(p)
 
-        _ko.append(y)
+        ko.append(y)
 
-    return _ko
+    return ko
 
 def syllabify_enko_phase3(_ko) : # IPA to Hangeul syllables
 
@@ -324,15 +320,21 @@ if __name__ == "__main__":
         line = line.strip()
         en, ipa = line.split("\t")
 
-        _ipa = syllabify_ipa(ipa)
-        _en = syllabify_en(en, _ipa)
-        ko = syllabify_enko(en, _en, _ipa)
+        ipa = syllabify_ipa(ipa)
+        en = syllabify_en(en, ipa)
+        ko = syllabify_enko(en, ipa)
 
-        if ko == None:
+        if not ko:
             # print(en, ipa, "", "", "", sep = "\t")
             continue
 
-        _en = ".".join("".join(x) for x in _en)
-        _ipa = ".".join("".join(x) for x in _ipa)
+        if len(ipa) == len(en):
+            pass # continue
 
-        # print(en, ipa, _en, _ipa, ko, sep = "\t")
+        ipa = ".".join("".join(x) for x in ipa)
+        en = ".".join("".join(x) for x in en)
+
+        print(line, en, ipa, ko, sep = "\t")
+
+    # TODO
+    # hotdog
