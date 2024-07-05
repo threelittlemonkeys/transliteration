@@ -34,9 +34,44 @@ def normalize(x):
     return x
 
 def concat_coda(m):
+
     return m.group(1) + "_" + m.group(2).replace(' ', '')
 
-def syllabify_ipa(x):
+def syllabify_graphemes(gr):
+
+    # onsets
+
+    C1 = "[bcdgkprstw]h|([bdfgjklmnprstxvz])\\2|[bcdfghjklmnpqrstvwxyz]"
+    C2 = "[bcfgkps]l|[bcdfgkpt]r|[cdgkpst]w|s[cfkmnpqt]"
+    C3 = "s[ckp][lr]|s[ft]r|skw"
+
+    # vowels
+
+    V1 = "[aeiou]|y(?![aeou])"
+    V2 = "[aeo]a|[aeiou]e|[aeo][ouw]|[aeou][iy]"
+    V3 = "(?<=[st])io(?=n)"
+
+    # grapheme segmentation
+
+    gr = normalize(gr)
+    gr = re.sub(f" ?({V3}|{V2}|{V1})", r" _\1_", gr)
+
+    # onset maximalization
+    gr = re.sub(f" ?({C3}|{C2}|{C1}) _", r" \1_", gr)
+    gr = re.sub("^([^ ]+) ", r"\1", gr)
+
+    # coda concatenation
+
+    gr = re.sub("(_[^ ]+)(( [^ _]+)+)(?=[ ])", concat_coda, gr)
+
+    # post-processing
+
+    gr = gr.strip()
+    gr = [x.split("_") for x in gr.split(" ")]
+
+    return gr
+
+def syllabify_phonemes(ph):
 
     # onsets
 
@@ -52,83 +87,52 @@ def syllabify_ipa(x):
 
     # phoneme segmentation
 
-    _ipa = normalize(x)
-    _ipa = re.sub(f" ?({V2}|{V1})", r" _\1_", _ipa)
+    ph = normalize(ph)
+    ph = re.sub(f" ?({V2}|{V1})", r" _\1_", ph)
 
     # onset maximalization
 
-    _ipa = re.sub(f" ?({C3}|{C2}|{C1}) _", r" \1_", _ipa)
+    ph = re.sub(f" ?({C3}|{C2}|{C1}) _", r" \1_", ph)
 
     # coda concatenation
 
-    _ipa = re.sub("(_[^ ˈˌ.]+)(( [^ _]+)+)(?=[ ˈˌ.])", concat_coda, _ipa)
+    ph = re.sub("(_[^ ˈˌ.]+)(( [^ _]+)+)(?=[ ˈˌ.])", concat_coda, ph)
 
     # post-processing
 
-    _ipa = re.sub(" ?[ˈˌ] ?", " ", _ipa)
-    _ipa = _ipa.strip()
-    _ipa = [x.split("_") for x in _ipa.split(" ")]
+    ph = re.sub(" ?[ˈˌ] ?", " ", ph)
+    ph = ph.strip()
+    ph = [x.split("_") for x in ph.split(" ")]
 
-    return _ipa
+    return ph
 
-def syllabify_en(en, _ipa):
+def transliterate_enko(gr, ph):
 
-    # onsets
+    gr = syllabify_graphemes(gr)
+    ph = syllabify_phonemes(ph)
 
-    C1 = "[bcdgkprstw]h|([bdfgjklmnprstxvz])\\2|[bcdfghjklmnpqrstvwxyz]"
-    C2 = "[bcfgkps]l|[bcdfgkpt]r|[cdgkpst]w|s[cfkmnpqt]"
-    C3 = "s[ckp][lr]|s[ft]r|skw"
+    align_syllables(gr, ph)
 
-    # vowels
+    ko = transliterate_enko_phase1(ph)
+    ko = transliterate_enko_phase2(ko)
 
-    V1 = "[aeiou]|y(?![aeou])"
-    V2 = "[aeo]a|[eiou]e|[aeo][ouw]|[aeou][iy]"
-    V3 = "(?<=[st])io(?=n)"
+    return gr, ph, ko
 
-    # phoneme segmentation
+def align_syllables(gr, ph):
 
-    _en = normalize(en)
-    _en = re.sub(f" ?({V3}|{V2}|{V1})", r" _\1_", _en)
-
-    # onset maximalization
-    _en = re.sub(f" ?({C3}|{C2}|{C1}) _", r" \1_", _en)
-    _en = re.sub("^([^ ]+) ", r"\1", _en)
-
-    # coda concatenation
-
-    _en = re.sub("(_[^ ˈˌ]+)(( [^ _]+)+)(?=[ ˈˌ])", concat_coda, _en)
-
-    # post-processing
-
-    _en = _en.strip()
-    _en = [x.split("_") for x in _en.split(" ")]
-
-    # silent e
-
-    if len(_en) > len(_ipa) and _en[-1][1] == "e" and _en[-1][2] in "ds":
-        s = "".join(_en[-1])
-        _en.pop()
-        _en[-1][-1] += s
-
-    return _en
-
-def syllabify_enko(en, ipa):
-
-    en = [[x for x in xs] for xs in en]
-    ipa = [[x for x in xs] for xs in ipa]
-
-    syllabify_enko_phase1(en, ipa)
-    ko = syllabify_enko_phase2(ipa)
-    ko = syllabify_enko_phase3(ko)
-
-    return ko
-
-def syllabify_enko_phase1(_en, _ipa):
-
-    if len(_ipa) == 1:
+    if len(gr) == 1:
         return
 
-    for i, (a, b) in enumerate(zip(_en, _ipa)):
+    if len(gr) - len(ph) < 2:
+        return
+
+    print(len(gr), gr)
+    print(len(ph), ph)
+    for s in ph:
+        print(s)
+    print()
+
+    for i, (a, b) in enumerate(zip(gr, ph)):
 
         if not i:
             continue
@@ -141,17 +145,20 @@ def syllabify_enko_phase1(_en, _ipa):
 
         # vowel reduction
 
-        if a[1] == "i" and b[0] != "ʃ" and b[1] == "ə" \
-        and not (len(_en) > i + 1 and "".join(en[i + 1])[:3] == "ble"):
+        '''
+        if a[1] == "i" and b[0][-1:] not in ("j", "ʃ", "ʒ") and b[1] == "ə" \
+        and not (len(gr) > i + 1 and "".join(gr[i + 1])[:3] == "ble"):
             b[1] = "i"
+            flags.add("VR")
+        '''
 
         # syllabic consonants
 
         if re.match("[bcdfgkpstz]le", a[0] + a[1]) \
         and (b[1] + b[2])[:2] == "əl":
-            b[1] = [""] # remove the schwa
+            b[1] = "" # remove the schwa
 
-def syllabify_enko_phase2(_ipa):
+def transliterate_enko_phase1(ph):
 
     # consonants
 
@@ -161,7 +168,7 @@ def syllabify_enko_phase2(_ipa):
 
     ko = []
 
-    for i, x in enumerate(_ipa):
+    for i, x in enumerate(ph):
 
         try:
             o, n, c = x
@@ -181,7 +188,7 @@ def syllabify_enko_phase2(_ipa):
 
             # syllable-initial /l/
 
-            if p == "l" and (y or ko):
+            if p[0] == "l" and (y or ko):
                 s = y[-1] if y else ko[-1][-1]
                 if len(s) != 3:
                     if len(s) == 1:
@@ -201,7 +208,7 @@ def syllabify_enko_phase2(_ipa):
 
         # non-word-final diphong /ou/
 
-        if (c or i < len(_ipa) - 1) and n == "ou":
+        if (c or i < len(ph) - 1) and n == "ou":
             n = "o"
 
         for p in n:
@@ -262,7 +269,7 @@ def syllabify_enko_phase2(_ipa):
 
     return ko
 
-def syllabify_enko_phase3(_ko) : # IPA to Hangeul syllables
+def transliterate_enko_phase2(_ko): # IPA to Hangeul syllables
 
     _ENKO = {
         **{a: b for a, b in zip(
@@ -317,24 +324,30 @@ if __name__ == "__main__":
 
     for line in sys.stdin:
 
-        line = line.strip()
-        en, ipa = line.split("\t")
+        flags = []
 
-        ipa = syllabify_ipa(ipa)
-        en = syllabify_en(en, ipa)
-        ko = syllabify_enko(en, ipa)
+        line = line.strip()
+        gr, ph = line.split("\t")
+        gr, ph, ko = transliterate_enko(gr, ph)
 
         if not ko:
-            # print(en, ipa, "", "", "", sep = "\t")
+            # print(gr, ph, "", "", "", sep = "\t")
             continue
 
-        if len(ipa) == len(en):
-            pass # continue
+        if len(gr) == len(ph):
+            continue
 
-        ipa = ".".join("".join(x) for x in ipa)
-        en = ".".join("".join(x) for x in en)
+        gr = ".".join("".join(x) for x in gr)
+        ph = ".".join("".join(x) for x in ph)
 
-        print(line, en, ipa, ko, sep = "\t")
+        if flags:
+            pass
 
-    # TODO
-    # hotdog
+        # print(line, gr, ph, ko, sep = "\t")
+
+# TODO
+# hotdog
+# accidental
+# fuel
+# nibble
+# approximate
