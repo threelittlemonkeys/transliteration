@@ -42,13 +42,13 @@ def syllabify_graphemes(gr):
     # onsets
 
     C1 = "[bcdgkprstw]h|([bdfgjklmnprstxvz])\\2|[bcdfghjklmnpqrstvwxyz]"
-    C2 = "[bcfgkps]l|[bcdfgkpt]r|[cdgkpst]w|s[cfkmnpqt]"
-    C3 = "s[ckp][lr]|s[ft]r|skw"
+    C2 = "[bcfgkps]l|[bcdfgkpt]r|[cdgkpst]w|qu|s[cfkmnpqt]"
+    C3 = "s[ckp][lr]|s[ft]r|skw|squ"
 
     # vowels
 
-    V1 = "[aeiou]|y(?![aeou])"
-    V2 = "[aeo]a|[aeiou]e|[aeo][ouw]|[aeou][iy]"
+    V1 = "[aeio]|(?<!q)u|y(?![aeou])"
+    V2 = "[aeo]a|[aeio]e|[aeo][ouw]|[aeo][iy]|(?<!q)(ue|u[iy])"
     V3 = "(?<=[st])io(?=n)"
 
     # grapheme segmentation
