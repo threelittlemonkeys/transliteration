@@ -123,14 +123,11 @@ def align_syllables(gr, ph):
     if len(gr) == 1:
         return
 
-    if len(gr) - len(ph) < 2:
-        return
-
-    print(len(gr), gr)
-    print(len(ph), ph)
-    for s in ph:
-        print(s)
-    print()
+    if len(gr) != len(ph):
+        print("".join("".join(x) for x in gr))
+        print(len(gr), gr)
+        print(len(ph), ph)
+        print()
 
     for i, (a, b) in enumerate(zip(gr, ph)):
 
