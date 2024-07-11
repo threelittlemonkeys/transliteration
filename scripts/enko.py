@@ -1,6 +1,7 @@
 import sys
 import re
 import jamofy
+from levenshtein import edit_distance
 
 # sonority sequencing principle (SSP)
 # sonority hierarchy
@@ -57,6 +58,7 @@ def syllabify_graphemes(gr):
     gr = re.sub(f" ?({V3}|{V2}|{V1})", r" _\1_", gr)
 
     # onset maximalization
+
     gr = re.sub(f" ?({C3}|{C2}|{C1}) _", r" \1_", gr)
     gr = re.sub("^([^ ]+) ", r"\1", gr)
 
@@ -120,14 +122,25 @@ def transliterate_enko(gr, ph):
 
 def align_syllables(gr, ph):
 
-    if len(gr) == 1:
-        return
+    gr_seq = [c for xs in gr for x in xs for c in x]
+    ph_idx = [0]
+    ph_seq = []
+
+    for xs in ph:
+        xs = [c for x in xs for c in x]
+        ph_idx += [len(xs) + ph_idx[-1]]
+        ph_seq += xs
+    ph_idx.pop()
 
     if len(gr) != len(ph):
+
         print("".join("".join(x) for x in gr))
-        print(len(gr), gr)
-        print(len(ph), ph)
+        print(gr_seq)
+        print(ph_seq, ph_idx)
+        print(edit_distance(ph_seq, gr_seq, verbose = True))
         print()
+
+    return
 
     for i, (a, b) in enumerate(zip(gr, ph)):
 
@@ -142,12 +155,10 @@ def align_syllables(gr, ph):
 
         # vowel reduction
 
-        '''
         if a[1] == "i" and b[0][-1:] not in ("j", "ʃ", "ʒ") and b[1] == "ə" \
         and not (len(gr) > i + 1 and "".join(gr[i + 1])[:3] == "ble"):
             b[1] = "i"
             flags.add("VR")
-        '''
 
         # syllabic consonants
 
