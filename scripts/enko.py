@@ -130,15 +130,29 @@ def align_syllables(gr, ph):
         xs = [c for x in xs for c in x]
         ph_idx += [len(xs) + ph_idx[-1]]
         ph_seq += xs
-    ph_idx.pop()
 
-    if len(gr) != len(ph):
+    if len(gr) == len(ph):
+        return
 
-        print("".join("".join(x) for x in gr))
-        print(gr_seq)
-        print(ph_seq, ph_idx)
-        print(edit_distance(ph_seq, gr_seq, verbose = True))
-        print()
+    print("".join("".join(x) for x in gr))
+    print(gr_seq)
+    print(ph_seq, ph_idx)
+
+    edbt = edit_distance(gr_seq, ph_seq, Wt = 0, backtrace = True)[1]
+    gr_seq_aligned = [[] for _ in range(len(ph_seq))]
+
+    k = -1
+    for i, j, *_ in edbt:
+        if i in (0, k):
+            continue
+        k = i
+        i = max(i - 1, 0)
+        j = max(min(j, len(ph_seq)) - 1, 0)
+        gr_seq_aligned[j].append(gr_seq[i])
+
+    gr_seq_alinged = [gr_seq_aligned[ph_idx[i]:ph_idx[i +1]] for i in range(len(ph_idx) - 1)]
+    print("->", gr_seq_aligned)
+    print()
 
     return
 
@@ -316,7 +330,7 @@ def transliterate_enko_phase2(_ko): # IPA to Hangeul syllables
 
             x = [_ENKO.get(p, p) for p in x]
 
-            if len(x) == 3:
+            if len(x) == 3: # TODO
                 if x[2] == "ㅋ":
                     x[2] = "ㄱ"
                 if x[2] == "ㅌ":
