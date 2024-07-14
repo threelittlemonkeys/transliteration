@@ -134,10 +134,6 @@ def align_syllables(gr, ph):
     if len(gr) == len(ph):
         return
 
-    print("".join("".join(x) for x in gr))
-    print(gr_seq)
-    print(ph_seq, ph_idx)
-
     edbt = edit_distance(gr_seq, ph_seq, Wt = 0, backtrace = True)[1]
     gr_seq_aligned = [[] for _ in range(len(ph_seq))]
 
@@ -150,8 +146,13 @@ def align_syllables(gr, ph):
         j = max(min(j, len(ph_seq)) - 1, 0)
         gr_seq_aligned[j].append(gr_seq[i])
 
-    gr_seq_alinged = [gr_seq_aligned[ph_idx[i]:ph_idx[i +1]] for i in range(len(ph_idx) - 1)]
-    print("->", gr_seq_aligned)
+    gr_seq_aligned = [
+            [x for xs in gr_seq_aligned[ph_idx[i]:ph_idx[i + 1]] for x in xs]
+            for i in range(len(ph_idx) - 1)
+    ]
+
+    print(gr)
+    print(ph)
     print()
 
     return
