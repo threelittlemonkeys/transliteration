@@ -7,8 +7,6 @@ from levenshtein import edit_distance
 # sonority hierarchy
 # vowels > glides > liquids > nasals > fricatives > affricates > plosives
 
-flags = []
-
 def normalize(x):
 
     x = re.sub(r"\s+", " ", x).strip()
@@ -159,9 +157,14 @@ def align_syllables(gr, ph):
 
         # syllabic consonants
 
-        if re.match("[bcdfgkpstz]le", a) \
-        and (b[1] + b[2])[:2] == "əl":
+        if re.search("[bcdfgkpstz]+le", a) and (b[1] + b[2])[:2] == "əl":
             b[1] = "" # remove the schwa
+
+        # vowel reduction
+
+        if re.search("i(?![aeiou])", a) and b[1] == "ə" \
+        and not (i + 1 < len(gr) and gr[i + 1][:2] == "bl"):
+            b[1] = "i"
 
 def transliterate_enko_phase1(ph):
 
@@ -329,6 +332,8 @@ if __name__ == "__main__":
 
     for line in sys.stdin:
 
+        flags = []
+
         line = line.strip()
         gr, ph = line.split("\t")
         gr, ph, ko = transliterate_enko(gr, ph)
@@ -341,7 +346,7 @@ if __name__ == "__main__":
         ph = ".".join("".join(x) for x in ph)
 
         if flags:
-            pass
+            pass # continue
 
         print(line, gr, ph, ko, sep = "\t")
 
