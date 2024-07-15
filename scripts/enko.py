@@ -7,6 +7,8 @@ from levenshtein import edit_distance
 # sonority hierarchy
 # vowels > glides > liquids > nasals > fricatives > affricates > plosives
 
+flags = []
+
 def normalize(x):
 
     x = re.sub(r"\s+", " ", x).strip()
@@ -122,7 +124,6 @@ def transliterate_enko(gr, ph):
 
 def align_syllables(gr, ph):
 
-    gr_seq = [c for xs in gr for x in xs for c in x]
     ph_idx = [0]
     ph_seq = []
 
@@ -131,11 +132,9 @@ def align_syllables(gr, ph):
         ph_idx += [len(xs) + ph_idx[-1]]
         ph_seq += xs
 
-    if len(gr) == len(ph):
-        return
-
-    edbt = edit_distance(gr_seq, ph_seq, Wt = 0, backtrace = True)[1]
+    gr_seq = [c for xs in gr for x in xs for c in x]
     gr_seq_aligned = [[] for _ in range(len(ph_seq))]
+    edbt = edit_distance(gr_seq, ph_seq, Wt = 0, backtrace = True)[1]
 
     k = -1
     for i, j, *_ in edbt:
@@ -147,37 +146,20 @@ def align_syllables(gr, ph):
         gr_seq_aligned[j].append(gr_seq[i])
 
     gr_seq_aligned = [
-            [x for xs in gr_seq_aligned[ph_idx[i]:ph_idx[i + 1]] for x in xs]
-            for i in range(len(ph_idx) - 1)
+        [x for xs in gr_seq_aligned[ph_idx[i]:ph_idx[i + 1]] for x in xs]
+        for i in range(len(ph_idx) - 1)
     ]
 
-    print(gr)
-    print(ph)
-    print()
-
-    return
+    gr[:] = ["".join(x) for x in gr_seq_aligned]
 
     for i, (a, b) in enumerate(zip(gr, ph)):
 
-        if not i:
+        if len(a) < 2:
             continue
-
-        if len(a) < 2 or len(b) < 2:
-            continue
-
-        if b[2] and b[2][0] == "r":
-            pass # continue
-
-        # vowel reduction
-
-        if a[1] == "i" and b[0][-1:] not in ("j", "ʃ", "ʒ") and b[1] == "ə" \
-        and not (len(gr) > i + 1 and "".join(gr[i + 1])[:3] == "ble"):
-            b[1] = "i"
-            flags.add("VR")
 
         # syllabic consonants
 
-        if re.match("[bcdfgkpstz]le", a[0] + a[1]) \
+        if re.match("[bcdfgkpstz]le", a) \
         and (b[1] + b[2])[:2] == "əl":
             b[1] = "" # remove the schwa
 
@@ -347,8 +329,6 @@ if __name__ == "__main__":
 
     for line in sys.stdin:
 
-        flags = []
-
         line = line.strip()
         gr, ph = line.split("\t")
         gr, ph, ko = transliterate_enko(gr, ph)
@@ -357,16 +337,13 @@ if __name__ == "__main__":
             # print(gr, ph, "", "", "", sep = "\t")
             continue
 
-        if len(gr) == len(ph):
-            continue
-
         gr = ".".join("".join(x) for x in gr)
         ph = ".".join("".join(x) for x in ph)
 
         if flags:
             pass
 
-        # print(line, gr, ph, ko, sep = "\t")
+        print(line, gr, ph, ko, sep = "\t")
 
 # TODO
 # hotdog
