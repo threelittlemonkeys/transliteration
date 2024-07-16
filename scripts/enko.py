@@ -163,7 +163,8 @@ def align_syllables(gr, ph):
         # vowel reduction
 
         if re.search("i(?![aeiou])", a) and b[1] == "ə" \
-        and not (i + 1 < len(gr) and gr[i + 1][:2] == "bl"):
+        and not (i + 1 < len(gr) and gr[i + 1][:2] == "bl") \
+        and not (i + 2 < len(gr) and gr[i + 1] == "bi" and gr[i + 2] == "li"):
             b[1] = "i"
 
 def transliterate_enko_phase1(ph):
