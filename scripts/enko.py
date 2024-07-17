@@ -78,7 +78,7 @@ def syllabify_phonemes(ph):
     # onsets
 
     C1 = "dʒ|tʃ|[bdfghjklmnprstvwzðŋʃʒθ]"
-    C2 = "[bfgkps]l|[bdfgkptθ]r|[dgkst]w|[bdfghklmnpstvzʒθ]j|dʒj|s[kmnpt]"
+    C2 = "[bfgkps]l|[bdfgkptθ]r|[dghkst]w|[bdfghklmnpstvzʒθ]j|dʒj|s[kmnpt]"
     C3 = "s[kmpt]j|s[kp][lr]|s[ft]r|skw"
 
     # vowels
@@ -115,7 +115,7 @@ def transliterate_enko(gr, ph):
 
     align_syllables(gr, ph)
 
-    ko = transliterate_enko_phase1(ph)
+    ko = transliterate_enko_phase1(gr, ph)
     ko = transliterate_enko_phase2(ko)
 
     return gr, ph, ko
@@ -150,28 +150,34 @@ def align_syllables(gr, ph):
 
     gr[:] = ["".join(x) for x in gr_seq_aligned]
 
-    for i, (a, b) in enumerate(zip(gr, ph)):
+    for i, (g, p) in enumerate(zip(gr, ph)):
 
-        if len(a) < 2:
+        if len(g) < 2:
             continue
 
         # syllabic consonants
 
-        if re.search("[bcdfgkpstz]+le", a) and (b[1] + b[2])[:2] == "əl":
-            b[1] = "" # remove the schwa
+        if re.search("[bcdfgkpstz]+le", g) and (p[1] + p[2])[:2] == "əl":
+            p[1] = "" # remove the schwa
 
         # vowel reduction
 
-        if re.search("i(?![aeiou])", a) and b[1] == "ə" \
-        and not (len(gr) > i + 1 and gr[i + 1][:2] == "bl") \
-        and not (len(gr) > i + 2 and gr[i + 1] == "bi" and gr[i + 2] == "li"):
-            b[1] = "i"
+        if re.search("(?<![aeiou])i(?![aeiou])", g) and p[1] == "ə" \
+        and not (i + 1 < len(gr) and gr[i + 1][:2] == "bl") \
+        and not (i + 2 < len(gr) and gr[i + 1] == "bi" and gr[i + 2] == "li"):
+            p[1] = "i"
 
-        if a[1] == "o" and len(b) > 1 and b[1] == "a":
-            b[1] = "ə" if b[0] == "k" else "o"
+        if re.search("du", g) and p[0] == "dʒ" and p[1] in ("u", "ə") and p[2] == "":
+            p[0] = "dj"
+            p[1] = "u"
             flags.append("")
 
-def transliterate_enko_phase1(ph):
+        # TODO
+
+        if g[1] == "o" and len(p) > 1 and p[1] == "a":
+            p[1] = "ə" if p[0] == "k" else "o"
+
+def transliterate_enko_phase1(gr, ph):
 
     # consonants
 
@@ -181,10 +187,10 @@ def transliterate_enko_phase1(ph):
 
     ko = []
 
-    for i, x in enumerate(ph):
+    for i, (g, p) in enumerate(zip(gr, ph)):
 
         try:
-            o, n, c = x
+            o, n, c = p
         except: # invalid syllable
             return ""
 
@@ -197,11 +203,11 @@ def transliterate_enko_phase1(ph):
         if not o:
             y.append([""])
 
-        for p in o:
+        for x in o:
 
             # syllable-initial /l/
 
-            if p[0] == "l" and (y or ko):
+            if x[0] == "l" and (y or ko):
                 s = y[-1] if y else ko[-1][-1]
                 if len(s) != 3:
                     if len(s) == 1:
@@ -210,30 +216,30 @@ def transliterate_enko_phase1(ph):
 
             # syllable-initial /m/, /n/
 
-            if p in ("m", "n") and ko:
+            if x in ("m", "n") and ko:
                 s = ko[-1]
                 if len(s[-1]) == 3 and s[-1][2] in ("k", "p"):
                     s.append([s[-1].pop()])
 
-            y.append([p])
+            y.append([x])
 
         # nucleus
 
-        # non-word-final diphong /ou/
+        # monosyllabify non-word-final diphong /ou/
 
-        if (c or i < len(ph) - 1) and n == "ou":
+        if n == "ou" and "ow" not in g:
             n = "o"
 
-        for p in n:
+        for x in n:
             if len(y[-1]) == 2:
                 y.append([""])
-            y[-1].append(p)
+            y[-1].append(x)
 
         # coda
 
         c = re.findall(f"{C3}|{C2}|{C1}", c)
 
-        for p in c:
+        for x in c:
 
             # coda already occupied
 
@@ -241,7 +247,7 @@ def transliterate_enko_phase1(ph):
 
                 # syllable-final /l/, /m/, /n/
 
-                if p in ("l", "m", "n"):
+                if x in ("l", "m", "n"):
                     if len(y[-1]) == 1:
                         y[-1].append("")
                     else:
@@ -253,30 +259,30 @@ def transliterate_enko_phase1(ph):
 
             # syllable-final /lm/, /ln/
 
-            elif p in ("lm", "ln"):
+            elif x in ("lm", "ln"):
                 y[-1].append("l")
                 y.append(["l", "ə"])
-                p = p[1]
+                x = x[1]
 
             # syllable-final /r/
 
-            elif p == "r":
+            elif x == "r":
                 if y[-1][-1][-1] in ("e", "i"): # /ɛɹ/, /ɪɹ/
                     y.append(["", "ə"]) # /ɛə/, /ɪə/
-                p = ""
+                x = ""
 
             # syllable-final /rl/
 
-            elif p == "rl":
+            elif x == "rl":
 
-                p = "l"
+                x = "l"
 
             # syllable-initial consonants
 
-            elif p not in ("b", "k", "l", "m", "n", "p", "ŋ"):
+            elif x not in ("b", "k", "l", "m", "n", "p", "ŋ"):
                 y.append([])
 
-            y[-1].append(p)
+            y[-1].append(x)
 
         ko.append(y)
 
@@ -351,7 +357,7 @@ if __name__ == "__main__":
         ph = ".".join("".join(x) for x in ph)
 
         if not flags:
-            continue
+            pass # continue
 
         print(line, gr, ph, ko, sep = "\t")
 
@@ -361,3 +367,9 @@ if __name__ == "__main__":
 # fuel
 # nibble
 # approximate
+# population
+# juang
+# graduate dʒuwət
+# gradually dʒuli
+# bilingual
+# consented, ing
