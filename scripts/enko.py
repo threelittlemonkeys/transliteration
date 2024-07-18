@@ -115,8 +115,8 @@ def transliterate_enko(gr, ph):
 
     align_syllables(gr, ph)
 
-    ko = transliterate_enko_phase1(gr, ph)
-    ko = transliterate_enko_phase2(ko)
+    en = transliterate_enko_phase1(gr, ph)
+    ko = transliterate_enko_phase2(en)
 
     return gr, ph, ko
 
@@ -288,7 +288,7 @@ def transliterate_enko_phase1(gr, ph):
 
     return ko
 
-def transliterate_enko_phase2(_ko): # IPA to Hangeul syllables
+def transliterate_enko_phase2(en): # IPA to Hangeul syllables
 
     _ENKO = {
         **{a: b for a, b in zip(
@@ -307,7 +307,7 @@ def transliterate_enko_phase2(_ko): # IPA to Hangeul syllables
 
     ko = ""
 
-    for xs in _ko:
+    for xs in en:
         for x in xs:
 
             if len(x) == 1:
@@ -369,7 +369,5 @@ if __name__ == "__main__":
 # approximate
 # population
 # juang
-# graduate dʒuwət
 # gradually dʒuli
 # bilingual
-# consented, ing
