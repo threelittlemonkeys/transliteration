@@ -170,12 +170,12 @@ def align_syllables(gr, ph):
         if re.search("du", g) and p[0] == "dʒ" and p[1] in ("u", "ə") and p[2] == "":
             p[0] = "dj"
             p[1] = "u"
-            flags.append("")
 
         # TODO
 
-        if g[1] == "o" and len(p) > 1 and p[1] == "a":
+        if re.search("(?<![aeiou])o(?![aeiou])$", g) and len(p) > 1 and p[1] in ("a", "ə"):
             p[1] = "ə" if p[0] == "k" else "o"
+            flags.append("")
 
 def transliterate_enko_phase1(gr, ph):
 
@@ -359,9 +359,10 @@ if __name__ == "__main__":
         if not flags:
             pass # continue
 
-        print(line, gr, ph, ko, sep = "\t")
+        print("!" if flags else "", line, gr, ph, ko, sep = "\t")
 
 # TODO
+# terrorist
 # hotdog
 # accidental
 # fuel
@@ -369,5 +370,7 @@ if __name__ == "__main__":
 # approximate
 # population
 # juang
-# gradually dʒuli
 # bilingual
+# national
+# exactly
+# directionless
