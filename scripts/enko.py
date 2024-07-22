@@ -122,6 +122,8 @@ def transliterate_enko(gr, ph):
 
 def align_syllables(gr, ph):
 
+    # pre-processing
+
     ph_idx = [0]
     ph_seq = []
 
@@ -131,7 +133,11 @@ def align_syllables(gr, ph):
         ph_seq += xs
 
     gr_seq = [c for xs in gr for x in xs for c in x]
+    gr_seq_norm = []
     gr_seq_aligned = [[] for _ in range(len(ph_seq))]
+
+    # syllable alignment based on edit distance
+
     edbt = edit_distance(gr_seq, ph_seq, Wt = 0, backtrace = True)[1]
 
     k = -1
@@ -149,6 +155,22 @@ def align_syllables(gr, ph):
     ]
 
     gr[:] = ["".join(x) for x in gr_seq_aligned]
+
+    for i in range(len(gr) - 1):
+
+        c = re.search("[^aeiou]+$", gr[i]) # coda
+        if not c:
+            continue
+        c = c.group()
+
+        if gr[i + 1] and re.match("[aeiou]", gr[i + 1]):
+            # gr[i] = gr[i][:-len(c)]
+            # gr[i + 1] = c + gr[i + 1]
+            flags.append("")
+
+        # print(i, c, gr[i], gr[i + 1])
+
+    # post-processing
 
     for i, (g, p) in enumerate(zip(gr, ph)):
 
@@ -173,9 +195,9 @@ def align_syllables(gr, ph):
 
         # TODO
 
-        if re.search("(?<![aeiou])o(?![aeiou])$", g) and len(p) > 1 and p[1] in ("a", "ə"):
+        if re.search("(?<![aeiou])o$", g) and len(p) > 1 and p[1] in ("a", "ə"):
             p[1] = "ə" if p[0] == "k" else "o"
-            flags.append("")
+            # flags.append("") # TODO
 
 def transliterate_enko_phase1(gr, ph):
 
