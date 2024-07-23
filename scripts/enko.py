@@ -7,6 +7,14 @@ from levenshtein import edit_distance
 # sonority hierarchy
 # vowels > glides > liquids > nasals > fricatives > affricates > plosives
 
+edit_distance_thesaurus = {
+    "a": {"e", "i"},
+    "i": {"ə"},
+    "o": {"ə"},
+    "q": {"k"},
+    "ʃ": {"c", "t"},
+}
+
 def normalize(x):
 
     x = re.sub(r"\s+", " ", x).strip()
@@ -76,7 +84,6 @@ def syllabify_graphemes(gr):
 def syllabify_phonemes(ph):
 
     # onsets
-
     C1 = "dʒ|tʃ|[bdfghjklmnprstvwzðŋʃʒθ]"
     C2 = "[bfgkps]l|[bdfgkptθ]r|[dghkst]w|[bdfghklmnpstvzʒθ]j|dʒj|s[kmnpt]"
     C3 = "s[kmpt]j|s[kp][lr]|s[ft]r|skw"
@@ -138,7 +145,12 @@ def align_syllables(gr, ph):
 
     # syllable alignment based on edit distance
 
-    edbt = edit_distance(gr_seq, ph_seq, Wt = 0, backtrace = True)[1]
+    edbt = edit_distance(
+        gr_seq,
+        ph_seq,
+        thesaurus = edit_distance_thesaurus,
+        backtrace = True
+    )[1]
 
     k = -1
     for i, j, *_ in edbt:
