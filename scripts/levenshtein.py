@@ -40,7 +40,6 @@ def edit_distance(a, b, Wd = 1, Wi = 1, Ws = 1, Wt = 0, thesaurus = {}, backtrac
 
         print("edit_distance_matrix =")
         print_edit_distance_matrix(a, b, m)
-        # print_edit_distance_matrix_colored(a, b, m, bt)
         print()
 
         print("edit_distance_backtrace =")
@@ -60,30 +59,6 @@ def in_thesaurus(a, b, thesaurus):
 
     return a == b
 
-def print_edit_distance_matrix(a, b, m):
-
-    print("  ".join([" ", " "] + list(b)))
-
-    for i in range(len(a) + 1):
-        c = a[i - 1] if i else " "
-        print(" ".join([c, *[f"{j:2d}" for j in m[i]]]))
-
-def print_edit_distance_matrix_colored(a, b, m, bt):
-
-    _m = []
-    yl = lambda x: f"\033[38;5;226m{x}\033[0m"
-
-    for i in range(len(a) + 1):
-        c = a[i - 1] if i else " "
-        _m.append([c, *[f"{j:2d}" for j in m[i]]])
-
-    _m[0][1] = yl(_m[0][1])
-    for i, j, *_, in bt: # highlight color
-        _m[i][j + 1] = yl(_m[i][j + 1])
-
-    print("  ".join([" ", " "] + list(b)))
-    print("\n".join(" ".join(xs) for xs in _m))
-
 def backtrace_edit_distance(a, b, m, thesaurus):
 
     x, y = len(a), len(b)
@@ -93,27 +68,46 @@ def backtrace_edit_distance(a, b, m, thesaurus):
 
     while x > 0 or y > 0:
 
-        d, i = min([
+        d, i = min(
             (m[x - a][y - b], i)
             for i, (a, b) in enumerate(ed)
             if x >= a and y >= b
-        ])
+        )
 
         if d == m[x][y]:
-            o = None if in_thesaurus(a[x - 1], b[y - 1], thesaurus) else op[-1]
+            o = "same" if in_thesaurus(a[x - 1], b[y - 1], thesaurus) else op[-1]
         else:
-            o = op[i if not bt or op[-1] != bt[-1][-1] else -1]
+            o = op[-1 if bt and op[-1] == bt[-1][-1] else i]
 
-        bt.append([x, y, m[x][y], o])
+        bt.append([x, y, m[x][y], (a[x - 1], b[y - 1]), o])
         x -= ed[i][0]
         y -= ed[i][1]
 
     return bt[::-1]
 
+def print_edit_distance_matrix(a, b, m, bt = None):
+
+    _m = []
+
+    for i in range(len(a) + 1):
+        c = a[i - 1] if i else " "
+        _m.append([c, *[f"{j:2d}" for j in m[i]]])
+
+    if bt: # highlight backtraces
+
+        hl = lambda x: f"\033[38;5;226m{x}\033[0m"
+        _m[0][1] = hl(_m[0][1])
+
+        for i, j, *_, in bt:
+            _m[i][j + 1] = hl(_m[i][j + 1])
+
+    print("  ".join([" ", " "] + list(b)))
+    print("\n".join(" ".join(xs) for xs in _m))
+
 if __name__ == "__main__":
 
-    a = "money"
-    b = "donkeys"
+    a = "ab_money"
+    b = "ba_donkeys"
 
-    ed, _ = edit_distance(a, b, backtrace = True, verbose = True)
+    ed, _ = edit_distance(a, b, Wt = 1, backtrace = True, verbose = True)
     print("edit_distance =", ed)

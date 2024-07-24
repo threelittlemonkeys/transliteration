@@ -7,11 +7,12 @@ from levenshtein import edit_distance
 # sonority hierarchy
 # vowels > glides > liquids > nasals > fricatives > affricates > plosives
 
-edit_distance_thesaurus = {
-    "a": {"e", "i"},
+g2p_thesaurus = {
+    "a": {"e", "i", "æ"},
     "i": {"ə"},
-    "o": {"ə"},
-    "q": {"k"},
+    "o": {"a", "u", "ə"},
+    "k": {"c", "q"},
+    "t": {"ð", "θ"},
     "ʃ": {"c", "t"},
 }
 
@@ -109,7 +110,7 @@ def syllabify_phonemes(ph):
 
     # post-processing
 
-    ph = re.sub(" ?[ˈˌ] ?", " ", ph)
+    ph = re.sub(" ?[ˈˌ.] ?", " ", ph)
     ph = ph.strip()
     ph = [x.split("_") for x in ph.split(" ")]
 
@@ -148,8 +149,9 @@ def align_syllables(gr, ph):
     edbt = edit_distance(
         gr_seq,
         ph_seq,
-        thesaurus = edit_distance_thesaurus,
-        backtrace = True
+        thesaurus = g2p_thesaurus,
+        backtrace = True,
+        verbose = False
     )[1]
 
     k = -1
@@ -408,3 +410,5 @@ if __name__ == "__main__":
 # national
 # exactly
 # directionless
+# scribed
+# women
