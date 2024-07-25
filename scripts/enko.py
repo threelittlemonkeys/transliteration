@@ -412,3 +412,8 @@ if __name__ == "__main__":
 # directionless
 # scribed
 # women
+# hardened
+# mature
+# misanthrope
+# breakout
+# discover
