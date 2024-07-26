@@ -9,9 +9,10 @@ from levenshtein import edit_distance
 
 g2p_thesaurus = {
     "a": {"e", "i", "æ"},
-    "i": {"ə"},
+    "i": {"e", "ə"},
     "o": {"a", "u", "ə"},
     "k": {"c", "q"},
+    "s": {"ʒ"},
     "t": {"ð", "θ"},
     "ʃ": {"c", "t"},
 }
@@ -417,3 +418,5 @@ if __name__ == "__main__":
 # misanthrope
 # breakout
 # discover
+# careful
+# business
